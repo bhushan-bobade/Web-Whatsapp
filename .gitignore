@@ -124,3 +124,10 @@ Thumbs.db
 
 # Local development
 *.local
+
+# Test files and temp scripts
+test-api.html
+backend/clear-and-reprocess.js
+backend/fix-names.js
+start-*.ps1
+start-servers.bat

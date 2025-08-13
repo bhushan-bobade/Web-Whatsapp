@@ -300,14 +300,23 @@ app.post('/api/load-sample-data', async (req, res) => {
             if (!existingMessage) {
               const contact = change.value.contacts?.find(c => c.wa_id === msg.from);
               
+              // Determine direction and conversation wa_id
+              const businessPhone = change.value.metadata?.display_phone_number;
+              const isOutgoing = msg.from === businessPhone;
+              
+              // For conversation grouping, always use the customer's wa_id
+              const customerWaId = isOutgoing ? 
+                (change.value.contacts?.[0]?.wa_id || 'unknown') : 
+                msg.from;
+              
               const newMessage = new Message({
                 id: msg.id,
                 meta_msg_id: msg.id,
-                wa_id: msg.from,
+                wa_id: customerWaId, // Always use customer's wa_id for grouping
                 profile_name: contact?.profile?.name || 'Unknown User',
                 body: msg.text?.body || msg.image?.caption || msg.document?.filename || 'Media message',
                 type: msg.type,
-                direction: 'incoming',
+                direction: isOutgoing ? 'outgoing' : 'incoming',
                 timestamp: new Date(parseInt(msg.timestamp) * 1000),
                 media_url: msg.image?.link || msg.document?.link || msg.audio?.link || msg.video?.link,
                 media_mime_type: msg.image?.mime_type || msg.document?.mime_type || msg.audio?.mime_type || msg.video?.mime_type,

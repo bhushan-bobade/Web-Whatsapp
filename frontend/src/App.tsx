@@ -92,8 +92,21 @@ function App() {
   // Fetch conversations
   const fetchConversations = async () => {
     try {
+      console.log('Fetching conversations from:', `${API_BASE_URL}/api/conversations`);
       const response = await axios.get(`${API_BASE_URL}/api/conversations`);
-      setConversations(response.data);
+      console.log('Conversations response:', response.data);
+      
+      // The backend already returns processed conversations in the correct format
+      const processedConversations = response.data.map((conv: any) => ({
+        _id: conv._id,
+        lastMessage: conv.lastMessage || 'No messages',
+        lastMessageTime: conv.lastMessageTime || new Date().toISOString(),
+        profile_name: conv.profile_name || 'Unknown',
+        unreadCount: conv.unreadCount || 0
+      }));
+      
+      console.log('Processed conversations:', processedConversations);
+      setConversations(processedConversations);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -105,7 +118,23 @@ function App() {
   const fetchMessages = async (wa_id: string) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/messages/${wa_id}`);
-      setMessages(response.data);
+      
+      // Backend already returns processed messages in the correct format
+      const transformedMessages = response.data.map((msg: any) => ({
+        _id: msg._id || msg.id,
+        id: msg.id,
+        wa_id: msg.wa_id,
+        profile_name: msg.profile_name,
+        body: msg.body,
+        timestamp: msg.timestamp,
+        type: msg.type,
+        status: msg.status,
+        direction: msg.direction,
+        media_url: msg.media_url,
+        caption: msg.caption
+      }));
+      
+      setMessages(transformedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -141,7 +170,13 @@ function App() {
   };
 
   useEffect(() => {
-    fetchConversations();
+    // Load sample data first, then fetch conversations
+    loadSampleData().then(() => {
+      fetchConversations();
+    }).catch(() => {
+      // If sample data loading fails, still try to fetch conversations
+      fetchConversations();
+    });
   }, []);
 
   const handleChatSelect = (wa_id: string) => {
@@ -284,28 +319,117 @@ function App() {
             </Paper>
 
             {/* Messages */}
-            <Box className="messages-container">
+            <Box className="messages-container" sx={{ 
+              flex: 1, 
+              overflowY: 'auto',
+              p: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              backgroundColor: '#e5ddd5',
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29-22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%239C92AC\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")'
+            }}>
               {messages.map((message) => (
                 <Box
                   key={message._id}
-                  className={`message ${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}`}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: message.direction === 'outgoing' ? 'flex-end' : 'flex-start',
+                    width: '100%',
+                    px: 1,
+                    py: 0.5,
+                    position: 'relative'
+                  }}
                 >
-                  <Paper
-                    className={`message-bubble ${message.direction}`}
-                    elevation={1}
+                  <Box
+                    sx={{
+                      maxWidth: '65%',
+                      p: '6px 7px 8px 9px',
+                      borderRadius: '7.5px',
+                      position: 'relative',
+                      backgroundColor: message.direction === 'outgoing' ? '#d9fdd3' : '#ffffff',
+                      boxShadow: '0 1px 0.5px rgba(0, 0, 0, 0.13)',
+                      ...(message.direction === 'incoming' && {
+                        borderTopLeftRadius: '0',
+                        marginRight: 'auto',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          left: '-8px',
+                          top: 0,
+                          width: 0,
+                          height: 0,
+                          border: '8px solid transparent',
+                          borderRightColor: '#ffffff',
+                          borderLeft: 0,
+                        },
+                      }),
+                      ...(message.direction === 'outgoing' && {
+                        borderTopRightRadius: '0',
+                        marginLeft: 'auto',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          right: '-8px',
+                          top: 0,
+                          width: 0,
+                          height: 0,
+                          border: '8px solid transparent',
+                          borderLeftColor: '#d9fdd3',
+                          borderRight: 0,
+                        },
+                      }),
+                    }}
                   >
-                    <Typography variant="body2">{message.body}</Typography>
-                    <Box className="message-info">
-                      <Typography variant="caption" color="textSecondary">
+                    <Box sx={{ 
+                      fontSize: '14.2px', 
+                      lineHeight: '19px', 
+                      color: '#111b21',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      mb: 0.5,
+                      pr: '40px'
+                    }}>
+                      {message.body}
+                    </Box>
+                    <Box sx={{ 
+                      position: 'absolute',
+                      bottom: '4px',
+                      right: '7px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      height: '15px',
+                      ml: '8px' // Add left margin for better spacing
+                    }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: message.direction === 'outgoing' ? '#1f7a7a' : '#667781',
+                          fontSize: '11px',
+                          lineHeight: '15px',
+                          whiteSpace: 'nowrap',
+                          pt: '3px'
+                        }}
+                      >
                         {formatTime(message.timestamp)}
                       </Typography>
                       {message.direction === 'outgoing' && (
-                        <Box className="message-status">
+                        <Box sx={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          ml: '2px',
+                          '& svg': {
+                            width: '16px',
+                            height: '16px',
+                            color: message.status === 'read' ? '#53bdeb' : '#8696a0'
+                          }
+                        }}>
                           {getStatusIcon(message.status)}
                         </Box>
                       )}
                     </Box>
-                  </Paper>
+                  </Box>
                 </Box>
               ))}
             </Box>
