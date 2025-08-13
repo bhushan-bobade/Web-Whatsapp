@@ -1,35 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "frontend/build/**",
-      "use": "@vercel/static"
+  "functions": {
+    "backend/server.js": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/backend/server.js"
     },
     {
-      "src": "/socket.io/(.*)",
+      "src": "/socket.io/(.*)", 
       "dest": "/backend/server.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/frontend/build/static/$1"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg))",
-      "dest": "/frontend/build/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/build/index.html"
     }
   ]
 }
