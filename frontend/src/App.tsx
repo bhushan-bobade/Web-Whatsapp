@@ -171,13 +171,18 @@ function App() {
 
   useEffect(() => {
     // Load sample data first, then fetch conversations
-    loadSampleData().then(() => {
-      fetchConversations();
-    }).catch(() => {
-      // If sample data loading fails, still try to fetch conversations
-      fetchConversations();
-    });
-  }, []);
+    const initializeApp = async () => {
+      try {
+        await loadSampleData();
+        await fetchConversations();
+      } catch (error) {
+        // If sample data loading fails, still try to fetch conversations
+        await fetchConversations();
+      }
+    };
+    
+    initializeApp();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChatSelect = (wa_id: string) => {
     setSelectedChat(wa_id);
