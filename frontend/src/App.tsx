@@ -130,6 +130,7 @@ function App() {
   };
 
   // Load sample data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const loadSampleData = async () => {
     try {
       await axios.post(`${API_BASE_URL}/api/load-sample-data`);
