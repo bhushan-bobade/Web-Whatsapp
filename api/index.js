@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-vercel-app.vercel.app', 'https://*.vercel.app']
+    ? ['https://web-whatsapp-eight.vercel.app', 'https://*.vercel.app']
     : ['http://localhost:3000'],
   credentials: true
 }));
@@ -268,7 +268,7 @@ app.post('/api/webhook/process-payload', async (req, res) => {
 // Load sample data from JSON files
 app.post('/api/load-sample-data', async (req, res) => {
   try {
-    const sampleDataPath = path.join(__dirname, '../sample-data');
+    const sampleDataPath = path.join(__dirname, 'sample-data');
     
     if (!fs.existsSync(sampleDataPath)) {
       return res.status(400).json({ error: 'Sample data directory not found' });
