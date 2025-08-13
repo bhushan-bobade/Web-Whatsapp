@@ -1,0 +1,33 @@
+{
+  "name": "whatsapp-web-clone",
+  "version": "1.0.0",
+  "description": "A full-stack WhatsApp Web clone with React, Node.js, MongoDB, and Socket.IO",
+  "main": "backend/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && npm start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "vercel-build": "cd frontend && npm install && npm run build"
+  },
+  "keywords": [
+    "whatsapp",
+    "chat",
+    "websocket",
+    "socketio",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
