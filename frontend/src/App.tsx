@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import io, { Socket } from 'socket.io-client';
 import axios from 'axios';
 import {
   Box,
@@ -26,6 +25,15 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import './App.css';
+
+// Only import Socket.IO in development
+let io: any = null;
+let Socket: any = null;
+if (process.env.NODE_ENV !== 'production') {
+  const socketIO = require('socket.io-client');
+  io = socketIO.default || socketIO;
+  Socket = socketIO.Socket;
+}
 
 interface Message {
   _id: string;
@@ -59,7 +67,7 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 
 function App() {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<any | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -84,7 +92,7 @@ function App() {
         fetchConversations();
       });
 
-      newSocket.on('message_status_update', ({ id, status }) => {
+      newSocket.on('message_status_update', ({ id, status }: { id: string; status: 'sent' | 'delivered' | 'read' | 'failed' }) => {
         setMessages(prev => prev.map(msg => 
           msg.id === id ? { ...msg, status } : msg
         ));
