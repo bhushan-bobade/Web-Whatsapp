@@ -28,11 +28,9 @@ import './App.css';
 
 // Only import Socket.IO in development
 let io: any = null;
-let Socket: any = null;
 if (process.env.NODE_ENV !== 'production') {
   const socketIO = require('socket.io-client');
   io = socketIO.default || socketIO;
-  Socket = socketIO.Socket;
 }
 
 interface Message {
