@@ -408,7 +408,11 @@ app.get('/api/debug/messages', async (req, res) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.2-debug' // Force new deployment
+  });
 });
 
 // Serve static files in production
