@@ -67,31 +67,44 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Initialize socket connection
+  // Initialize socket connection (only in development)
   useEffect(() => {
-    const newSocket = io(API_BASE_URL);
-    setSocket(newSocket);
+    if (process.env.NODE_ENV !== 'production') {
+      const newSocket = io(API_BASE_URL);
+      setSocket(newSocket);
 
-    newSocket.on('new_message', (message: Message) => {
-      if (selectedChat === message.wa_id) {
-        setMessages(prev => [...prev, message]);
-      }
-      fetchConversations();
-    });
+      newSocket.on('new_message', (message: Message) => {
+        if (selectedChat === message.wa_id) {
+          setMessages(prev => [...prev, message]);
+        }
+        fetchConversations();
+      });
 
-    newSocket.on('conversation_updated', () => {
-      fetchConversations();
-    });
+      newSocket.on('conversation_updated', () => {
+        fetchConversations();
+      });
 
-    newSocket.on('message_status_update', ({ id, status }) => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === id ? { ...msg, status } : msg
-      ));
-    });
+      newSocket.on('message_status_update', ({ id, status }) => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === id ? { ...msg, status } : msg
+        ));
+      });
 
-    return () => {
-      newSocket.close();
-    };
+      return () => {
+        newSocket.close();
+      };
+    }
+  }, [selectedChat]);
+
+  // Polling for updates in production
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' && selectedChat) {
+      const interval = setInterval(() => {
+        fetchMessages(selectedChat);
+      }, 3000); // Poll every 3 seconds
+
+      return () => clearInterval(interval);
+    }
   }, [selectedChat]);
 
   // Fetch conversations
