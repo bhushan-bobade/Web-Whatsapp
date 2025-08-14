@@ -23,8 +23,19 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://web-whatsapp-eight.vercel.app', 'https://*.vercel.app']
-    : ['http://localhost:3000'],
+    ? function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or postman)
+        if (!origin) return callback(null, true);
+        
+        // Allow any vercel.app subdomain
+        if (origin.includes('vercel.app')) return callback(null, true);
+        
+        // Allow localhost for testing
+        if (origin.includes('localhost')) return callback(null, true);
+        
+        return callback(new Error('Not allowed by CORS'));
+      }
+    : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
 app.use(express.json());
@@ -268,7 +279,7 @@ app.post('/api/webhook/process-payload', async (req, res) => {
 // Load sample data from JSON files
 app.post('/api/load-sample-data', async (req, res) => {
   try {
-    const sampleDataPath = path.join(__dirname, 'sample-data');
+    const sampleDataPath = path.join(__dirname, '../sample-data');
     
     if (!fs.existsSync(sampleDataPath)) {
       return res.status(400).json({ error: 'Sample data directory not found' });
