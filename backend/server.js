@@ -23,8 +23,8 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-vercel-app.vercel.app', 'https://*.vercel.app']
-    : ['http://localhost:3000'],
+    ? true  // Allow all origins in production (same domain)
+    : ['http://localhost:3000', 'http://localhost:3002'],
   credentials: true
 }));
 app.use(express.json());

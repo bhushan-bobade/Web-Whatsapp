@@ -49,9 +49,14 @@ interface Conversation {
   unreadCount: number;
 }
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? '' // Use relative URLs in production (same domain)
-  : 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? '' // Same domain for production (Vercel will handle routing)
+    : 'http://localhost:5000');
+
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 
 function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
