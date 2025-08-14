@@ -115,13 +115,29 @@ app.get('/api/messages/:wa_id', async (req, res) => {
     const limit = parseInt(req.query.limit) || 50;
     const skip = (page - 1) * limit;
 
+    console.log(`Fetching messages for wa_id: ${wa_id}`);
+    
     const messages = await Message.find({ wa_id })
       .sort({ timestamp: -1 })
       .limit(limit)
       .skip(skip);
 
+    console.log(`Found ${messages.length} messages for ${wa_id}`);
+    
+    // If no messages found, check if wa_id exists at all
+    if (messages.length === 0) {
+      const totalMessages = await Message.countDocuments({ wa_id });
+      console.log(`Total messages in DB for ${wa_id}: ${totalMessages}`);
+      
+      if (totalMessages === 0) {
+        // Return empty array but with success status
+        return res.json([]);
+      }
+    }
+
     res.json(messages.reverse());
   } catch (error) {
+    console.error('Error fetching messages:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -361,6 +377,31 @@ app.post('/api/load-sample-data', async (req, res) => {
     });
   } catch (error) {
     console.error('Sample data loading error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Debug endpoint to check messages in database
+app.get('/api/debug/messages', async (req, res) => {
+  try {
+    const allMessages = await Message.find({}).limit(10).sort({ timestamp: -1 });
+    const messagesByWaId = await Message.aggregate([
+      {
+        $group: {
+          _id: '$wa_id',
+          count: { $sum: 1 },
+          lastMessage: { $last: '$body' },
+          profile_name: { $last: '$profile_name' }
+        }
+      }
+    ]);
+    
+    res.json({
+      totalMessages: await Message.countDocuments({}),
+      recentMessages: allMessages,
+      messagesByWaId: messagesByWaId
+    });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
