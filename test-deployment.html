@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test WhatsApp API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button { padding: 10px 15px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp Web Clone - Deployment Test</h1>
+        
+        <div class="test-section">
+            <h3>API Base URL</h3>
+            <input type="text" id="apiUrl" value="https://web-whatsapp-eight.vercel.app" style="width: 400px;" />
+            <button onclick="updateApiUrl()">Update URL</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Health Check</h3>
+            <button onclick="testHealth()">Test /api/health</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Load Sample Data</h3>
+            <button onclick="loadSampleData()">Load Sample Data</button>
+            <div id="loadDataResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Get Conversations</h3>
+            <button onclick="getConversations()">Get Conversations</button>
+            <div id="conversationsResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Get Messages</h3>
+            <input type="text" id="waId" placeholder="Enter wa_id (e.g., 919937320320)" style="width: 300px;" />
+            <button onclick="getMessages()">Get Messages</button>
+            <div id="messagesResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let API_URL = 'https://web-whatsapp-eight.vercel.app';
+
+        function updateApiUrl() {
+            API_URL = document.getElementById('apiUrl').value.trim();
+            if (!API_URL.startsWith('http')) {
+                API_URL = 'https://' + API_URL;
+            }
+            console.log('Updated API URL:', API_URL);
+        }
+
+        function showResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isError ? 'error' : 'success'}"><pre>${message}</pre></div>`;
+        }
+
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const data = await response.json();
+                showResult('healthResult', `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('healthResult', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function loadSampleData() {
+            try {
+                showResult('loadDataResult', 'Loading sample data...');
+                const response = await fetch(`${API_URL}/api/load-sample-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                showResult('loadDataResult', `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('loadDataResult', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getConversations() {
+            try {
+                const response = await fetch(`${API_URL}/api/conversations`);
+                const data = await response.json();
+                showResult('conversationsResult', `Status: ${response.status}\nFound ${data.length} conversations\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('conversationsResult', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getMessages() {
+            const waId = document.getElementById('waId').value.trim();
+            if (!waId) {
+                showResult('messagesResult', 'Please enter a wa_id', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/messages/${waId}`);
+                const data = await response.json();
+                showResult('messagesResult', `Status: ${response.status}\nFound ${data.length} messages\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('messagesResult', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Auto-test health on load
+        window.onload = function() {
+            setTimeout(testHealth, 1000);
+        };
+    </script>
+</body>
+</html>
